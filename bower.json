@@ -11,5 +11,6 @@
     "js"
   ],
   "homepage": "https://github.com/Kelgors/Pool.js",
-  "moduleType": []
+  "moduleType": [],
+  "ignore": [ "node_modules", "bower_components" ]
 }
