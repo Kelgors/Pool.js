@@ -63,15 +63,18 @@ define(['exports'], function (exports) {
     _createClass(Pool, [{
       key: 'destroy',
       value: function destroy() {
-        if (this.objectDestroyMethodName) {
-          this._destroyChildren(this.borrowedObjects);
-          this._destroyChildren(this.availableObjects);
-        }
+        this._destroyChildren(this.borrowedObjects);
+        this._destroyChildren(this.availableObjects);
       }
     }, {
       key: '_destroyChildren',
       value: function _destroyChildren(arrayOfObjects) {
         var methodName = this.objectDestroyMethodName || this.clearMethodName;
+        if (!methodName) {
+          // just empty it
+          arrayOfObjects.splice(0, arrayOfObjects.length);
+          return;
+        }
         var object = void 0;
         while (object = arrayOfObjects.pop()) {
           try {

@@ -7,7 +7,7 @@ npm install pool.js
 bower install pool.js
 ```
 
-### Pool
+### How-To
 
 ```javascript
 function View(blah) {

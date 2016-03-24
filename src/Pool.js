@@ -17,14 +17,17 @@ export default class Pool {
   }
 
   destroy() {
-    if (this.objectDestroyMethodName) {
-      this._destroyChildren(this.borrowedObjects);
-      this._destroyChildren(this.availableObjects);
-    }
+    this._destroyChildren(this.borrowedObjects);
+    this._destroyChildren(this.availableObjects);
   }
 
   _destroyChildren(arrayOfObjects) {
     const methodName = this.objectDestroyMethodName || this.clearMethodName;
+    if (!methodName) {
+      // just empty it
+      arrayOfObjects.splice(0, arrayOfObjects.length);
+      return;
+    }
     let object;
     while (object = arrayOfObjects.pop()) {
       try {
