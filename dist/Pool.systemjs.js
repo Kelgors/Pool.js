@@ -74,7 +74,7 @@ System.register('Pool', ['babel-runtime/helpers/classCallCheck', 'babel-runtime/
             var object = null;
             if (this.hasAvailables()) {
               if (this.availableObjects.length === 0) {
-                object = this.objectConstructorIsFactory ? this.ObjectContructor() : new this.ObjectContructor();
+                object = this.objectConstructorIsFactory ? this.ObjectConstructor() : new this.ObjectConstructor();
               } else {
                 object = this.availableObjects.pop();
               }
@@ -85,13 +85,13 @@ System.register('Pool', ['babel-runtime/helpers/classCallCheck', 'babel-runtime/
         }, {
           key: 'returns',
           value: function returns(borrowedObject) {
-            if (!(borrowedObject instanceof this.ObjectContructor)) {
+            if (!(borrowedObject instanceof this.ObjectConstructor)) {
               throw new Error('Can\'t return object which is not a ' + this.ObjectConstructor.name);
             }
             var index = this.borrowedObjects.indexOf(borrowedObject);
             if (index === -1) {
               if (this.availableObjects.includes(borrowedObject)) {
-                throw new Error(this.ObjectContructor.name + ' already returned !');
+                throw new Error(this.ObjectConstructor.name + ' already returned !');
               }
               throw new Error('Object given in Pool#returns() is not referenced in this Pool instance.');
             }
@@ -124,7 +124,7 @@ System.register('Pool', ['babel-runtime/helpers/classCallCheck', 'babel-runtime/
         }, {
           key: 'toString',
           value: function toString() {
-            return 'Pool<' + this.ObjectContructor.name + '>(borrowed: ' + this.getCountBorrowed() + ', available: ' + this.getCountAvailables() + ')';
+            return 'Pool<' + this.ObjectConstructor.name + '>(borrowed: ' + this.getCountBorrowed() + ', available: ' + this.getCountAvailables() + ')';
           }
         }]);
 
