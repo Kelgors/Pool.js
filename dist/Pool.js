@@ -12,7 +12,7 @@ function set_constant(instance, key, value) {
 }
 
 var Pool = function () {
-  function Pool(ObjectContructor) {
+  function Pool(ObjectConstructor) {
     var size = arguments.length <= 1 || arguments[1] === undefined ? -1 : arguments[1];
 
     var _ref = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];

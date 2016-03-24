@@ -1,43 +1,31 @@
-define(['exports'], function (exports) {
+define('Pool', ['exports', 'babel-runtime/helpers/classCallCheck', 'babel-runtime/helpers/createClass', 'babel-runtime/core-js/object/define-property'], function (exports, _classCallCheck2, _createClass2, _defineProperty) {
   'use strict';
 
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
 
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
+  var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+
+  var _createClass3 = _interopRequireDefault(_createClass2);
+
+  var _defineProperty2 = _interopRequireDefault(_defineProperty);
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
   }
 
-  var _createClass = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];
-        descriptor.enumerable = descriptor.enumerable || false;
-        descriptor.configurable = true;
-        if ("value" in descriptor) descriptor.writable = true;
-        Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }
-
-    return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);
-      if (staticProps) defineProperties(Constructor, staticProps);
-      return Constructor;
-    };
-  }();
-
   function set_constant(instance, key, value) {
-    Object.defineProperty(instance, key, {
+    (0, _defineProperty2.default)(instance, key, {
       writable: false, configurable: false,
       value: value
     });
   }
 
   var Pool = function () {
-    function Pool(ObjectContructor) {
+    function Pool(ObjectConstructor) {
       var size = arguments.length <= 1 || arguments[1] === undefined ? -1 : arguments[1];
 
       var _ref = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
@@ -48,8 +36,7 @@ define(['exports'], function (exports) {
       var destroyMethodName = _ref$destroyMethodNam === undefined ? null : _ref$destroyMethodNam;
       var _ref$isFactory = _ref.isFactory;
       var isFactory = _ref$isFactory === undefined ? false : _ref$isFactory;
-
-      _classCallCheck(this, Pool);
+      (0, _classCallCheck3.default)(this, Pool);
 
       this.size = size;
       set_constant(this, 'ObjectConstructor', ObjectConstructor);
@@ -60,7 +47,7 @@ define(['exports'], function (exports) {
       set_constant(this, 'availableObjects', []);
     }
 
-    _createClass(Pool, [{
+    (0, _createClass3.default)(Pool, [{
       key: 'destroy',
       value: function destroy() {
         this._destroyChildren(this.borrowedObjects);
@@ -144,7 +131,6 @@ define(['exports'], function (exports) {
         return 'Pool<' + this.ObjectContructor.name + '>(borrowed: ' + this.getCountBorrowed() + ', available: ' + this.getCountAvailables() + ')';
       }
     }]);
-
     return Pool;
   }();
 

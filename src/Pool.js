@@ -6,7 +6,7 @@ function set_constant(instance, key, value) {
 }
 
 export default class Pool {
-  constructor(ObjectContructor, size = -1, { clearMethodName = null, destroyMethodName = null, isFactory = false } = {}) {
+  constructor(ObjectConstructor, size = -1, { clearMethodName = null, destroyMethodName = null, isFactory = false } = {}) {
     this.size = size;
     set_constant(this, 'ObjectConstructor', ObjectConstructor);
     set_constant(this, 'objectClearMethodName', clearMethodName);

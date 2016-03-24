@@ -1,44 +1,26 @@
 'use strict';
 
-System.register([], function (_export, _context) {
-  var _createClass, Pool;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
+System.register('Pool', ['babel-runtime/helpers/classCallCheck', 'babel-runtime/helpers/createClass', 'babel-runtime/core-js/object/define-property'], function (_export, _context) {
+  var _classCallCheck, _createClass, _Object$defineProperty, Pool;
 
   function set_constant(instance, key, value) {
-    Object.defineProperty(instance, key, {
+    _Object$defineProperty(instance, key, {
       writable: false, configurable: false,
       value: value
     });
   }
 
   return {
-    setters: [],
+    setters: [function (_babelRuntimeHelpersClassCallCheck) {
+      _classCallCheck = _babelRuntimeHelpersClassCallCheck.default;
+    }, function (_babelRuntimeHelpersCreateClass) {
+      _createClass = _babelRuntimeHelpersCreateClass.default;
+    }, function (_babelRuntimeCoreJsObjectDefineProperty) {
+      _Object$defineProperty = _babelRuntimeCoreJsObjectDefineProperty.default;
+    }],
     execute: function () {
-      _createClass = function () {
-        function defineProperties(target, props) {
-          for (var i = 0; i < props.length; i++) {
-            var descriptor = props[i];
-            descriptor.enumerable = descriptor.enumerable || false;
-            descriptor.configurable = true;
-            if ("value" in descriptor) descriptor.writable = true;
-            Object.defineProperty(target, descriptor.key, descriptor);
-          }
-        }
-
-        return function (Constructor, protoProps, staticProps) {
-          if (protoProps) defineProperties(Constructor.prototype, protoProps);
-          if (staticProps) defineProperties(Constructor, staticProps);
-          return Constructor;
-        };
-      }();
-
       Pool = function () {
-        function Pool(ObjectContructor) {
+        function Pool(ObjectConstructor) {
           var size = arguments.length <= 1 || arguments[1] === undefined ? -1 : arguments[1];
 
           var _ref = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];

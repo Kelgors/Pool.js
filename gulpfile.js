@@ -6,12 +6,17 @@ const replace = require('gulp-replace');
 const rename  = require('gulp-rename');
 const uglify = require('gulp-uglifyjs');
 
+const sourceFiles = [ 'src/*.js' ];
 const moduleTypes = [ 'amd', 'systemjs', 'commonjs' ];
 
-const modulesBabelConfig = {
-  moduleIds: false,
-  plugins: []
+const defaultConfig = {
+  moduleIds: false
 };
+
+const modulesBabelConfig = mergeObjectDeeply({
+  moduleIds: true,
+  plugins: [ "transform-runtime" ]
+});
 
 function mergeObjectDeeply(a, b) {
   a = Object.assign({}, a);
@@ -34,14 +39,14 @@ const buildJsTasks = [ 'build:js:globals', 'build:js:globals:min' ];
 moduleTypes.forEach((type) => {
   const config = mergeObjectDeeply(modulesBabelConfig, { plugins: [ `transform-es2015-modules-${type}` ] });
   gulp.task(`build:js:${type}`, () => {
-    return gulp.src('src/*.js')
+    return gulp.src(sourceFiles)
       .pipe(babel(config))
       .pipe(rename(`Pool.${type}.js`))
       .pipe(gulp.dest('dist'));
   });
 
   gulp.task(`build:js:${type}:min`, function () {
-    return gulp.src('src/*.js')
+    return gulp.src(sourceFiles)
       .pipe(babel(config))
       .pipe(uglify())
       .pipe(rename(`Pool.${type}.min.js`))
@@ -53,18 +58,18 @@ moduleTypes.forEach((type) => {
 
 
 gulp.task('build:js:globals', function () {
-  return gulp.src('src/*.js')
+  return gulp.src(sourceFiles)
     .pipe(replace(/import [\{\[]?.*[\}\]]? from .*;\n/g, ''))
     .pipe(replace(/export (default )?/g, ''))
-    .pipe(babel())
+    .pipe(babel(defaultConfig))
     .pipe(gulp.dest('dist'));
 });
 
 gulp.task('build:js:globals:min', () => {
-  return gulp.src('src/*.js')
+  return gulp.src(sourceFiles)
     .pipe(replace(/import [\{\[]?.*[\}\]]? from .*;\n/g, ''))
     .pipe(replace(/export (default )?/g, ''))
-    .pipe(babel())
+    .pipe(babel(defaultConfig))
     .pipe(uglify())
     .pipe(rename(`Pool.min.js`))
     .pipe(gulp.dest('dist'));
@@ -73,7 +78,7 @@ gulp.task('build:js:globals:min', () => {
 gulp.task('build:js', buildJsTasks);
 
 gulp.task('watch:js', function () {
-  gulp.watch('src/*.js', [ 'build:js' ]);
+  gulp.watch(sourceFiles, [ 'build:js' ]);
 });
 
 gulp.task('default', [ 'watch:js' ]);
