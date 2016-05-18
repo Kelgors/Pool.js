@@ -15,7 +15,7 @@ const defaultConfig = {
 
 const modulesBabelConfig = mergeObjectDeeply({
   moduleIds: true,
-  plugins: [ "transform-runtime" ]
+  plugins: []
 });
 
 function mergeObjectDeeply(a, b) {

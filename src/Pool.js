@@ -14,15 +14,19 @@ export default class Pool {
     set_constant(this, 'objectConstructorIsFactory', isFactory);
     set_constant(this, 'borrowedObjects', []);
     set_constant(this, 'availableObjects', []);
+    set_constant(this, 'awaitCallbacks', []);
   }
 
   destroy() {
     this._destroyChildren(this.borrowedObjects);
     this._destroyChildren(this.availableObjects);
+    if (this.awaitCallbacks.length) {
+      this.awaitCallbacks.splice(0, this.awaitCallbacks.length);
+    }
   }
 
   _destroyChildren(arrayOfObjects) {
-    const methodName = this.objectDestroyMethodName || this.clearMethodName;
+    const methodName = this.objectDestroyMethodName || this.objectClearMethodName;
     if (!methodName) {
       // just empty it
       arrayOfObjects.splice(0, arrayOfObjects.length);
@@ -39,6 +43,13 @@ export default class Pool {
     }
   }
 
+  await() {
+    if (this.hasAvailables()) return Promise.resolve(this.borrows());
+    return new Promise((resolve, reject) => {
+      this.awaitCallbacks.push(resolve);
+    });
+  }
+
   borrows() {
     let object = null;
     if (this.hasAvailables()) {
@@ -49,16 +60,17 @@ export default class Pool {
       }
       this.borrowedObjects.push(object);
     }
+    if (this._onObjectBorrowed) this._onObjectBorrowed();
     return object;
   }
 
   returns(borrowedObject) {
-    if (!(borrowedObject instanceof this.ObjectConstructor)) {
+    if (!this.objectConstructorIsFactory && !(borrowedObject instanceof this.ObjectConstructor)) {
       throw new Error(`Can't return object which is not a ${this.ObjectConstructor.name}`);
     }
     const index = this.borrowedObjects.indexOf(borrowedObject);
     if (index === -1) {
-      if (this.availableObjects.includes(borrowedObject)) {
+      if (this.availableObjects.indexOf(borrowedObject) > -1) {
         throw new Error(`${this.ObjectConstructor.name} already returned !`);
       }
       throw new Error(`Object given in Pool#returns() is not referenced in this Pool instance.`);
@@ -73,6 +85,7 @@ export default class Pool {
       }
     }
     this.availableObjects.push(borrowedObject);
+    if (this._onObjectReturned) this._onObjectReturned();
   }
 
   hasAvailables() {
@@ -80,7 +93,7 @@ export default class Pool {
   }
 
   getCountAvailables() {
-    return this.availableObjects.length;
+    return (this.size === -1 ? Number.MAX_SAFE_INTEGER : this.size) - this.getCountBorrowed();
   }
 
   getCountBorrowed() {
@@ -89,6 +102,14 @@ export default class Pool {
 
   toString() {
     return `Pool<${this.ObjectConstructor.name}>(borrowed: ${this.getCountBorrowed()}, available: ${this.getCountAvailables()})`;
+  }
+
+  _onObjectReturned() {
+    console.log('_onObjectReturned');
+    if (this.awaitCallbacks.length && this.hasAvailables()) {
+      const resolver = this.awaitCallbacks.shift();
+      resolver(this.borrows());
+    }
   }
 
 }

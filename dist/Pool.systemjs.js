@@ -1,24 +1,44 @@
 'use strict';
 
-System.register('Pool', ['babel-runtime/helpers/classCallCheck', 'babel-runtime/helpers/createClass', 'babel-runtime/core-js/object/define-property'], function (_export, _context) {
-  var _classCallCheck, _createClass, _Object$defineProperty, Pool;
+System.register('Pool', [], function (_export, _context) {
+  "use strict";
+
+  var _createClass, Pool;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
 
   function set_constant(instance, key, value) {
-    _Object$defineProperty(instance, key, {
+    Object.defineProperty(instance, key, {
       writable: false, configurable: false,
       value: value
     });
   }
 
   return {
-    setters: [function (_babelRuntimeHelpersClassCallCheck) {
-      _classCallCheck = _babelRuntimeHelpersClassCallCheck.default;
-    }, function (_babelRuntimeHelpersCreateClass) {
-      _createClass = _babelRuntimeHelpersCreateClass.default;
-    }, function (_babelRuntimeCoreJsObjectDefineProperty) {
-      _Object$defineProperty = _babelRuntimeCoreJsObjectDefineProperty.default;
-    }],
+    setters: [],
     execute: function () {
+      _createClass = function () {
+        function defineProperties(target, props) {
+          for (var i = 0; i < props.length; i++) {
+            var descriptor = props[i];
+            descriptor.enumerable = descriptor.enumerable || false;
+            descriptor.configurable = true;
+            if ("value" in descriptor) descriptor.writable = true;
+            Object.defineProperty(target, descriptor.key, descriptor);
+          }
+        }
+
+        return function (Constructor, protoProps, staticProps) {
+          if (protoProps) defineProperties(Constructor.prototype, protoProps);
+          if (staticProps) defineProperties(Constructor, staticProps);
+          return Constructor;
+        };
+      }();
+
       Pool = function () {
         function Pool(ObjectConstructor) {
           var size = arguments.length <= 1 || arguments[1] === undefined ? -1 : arguments[1];
@@ -41,6 +61,7 @@ System.register('Pool', ['babel-runtime/helpers/classCallCheck', 'babel-runtime/
           set_constant(this, 'objectConstructorIsFactory', isFactory);
           set_constant(this, 'borrowedObjects', []);
           set_constant(this, 'availableObjects', []);
+          set_constant(this, 'awaitCallbacks', []);
         }
 
         _createClass(Pool, [{
@@ -48,11 +69,14 @@ System.register('Pool', ['babel-runtime/helpers/classCallCheck', 'babel-runtime/
           value: function destroy() {
             this._destroyChildren(this.borrowedObjects);
             this._destroyChildren(this.availableObjects);
+            if (this.awaitCallbacks.length) {
+              this.awaitCallbacks.splice(0, this.awaitCallbacks.length);
+            }
           }
         }, {
           key: '_destroyChildren',
           value: function _destroyChildren(arrayOfObjects) {
-            var methodName = this.objectDestroyMethodName || this.clearMethodName;
+            var methodName = this.objectDestroyMethodName || this.objectClearMethodName;
             if (!methodName) {
               // just empty it
               arrayOfObjects.splice(0, arrayOfObjects.length);
@@ -69,6 +93,16 @@ System.register('Pool', ['babel-runtime/helpers/classCallCheck', 'babel-runtime/
             }
           }
         }, {
+          key: 'await',
+          value: function await() {
+            var _this = this;
+
+            if (this.hasAvailables()) return Promise.resolve(this.borrows());
+            return new Promise(function (resolve, reject) {
+              _this.awaitCallbacks.push(resolve);
+            });
+          }
+        }, {
           key: 'borrows',
           value: function borrows() {
             var object = null;
@@ -80,17 +114,18 @@ System.register('Pool', ['babel-runtime/helpers/classCallCheck', 'babel-runtime/
               }
               this.borrowedObjects.push(object);
             }
+            if (this._onObjectBorrowed) this._onObjectBorrowed();
             return object;
           }
         }, {
           key: 'returns',
           value: function returns(borrowedObject) {
-            if (!(borrowedObject instanceof this.ObjectConstructor)) {
+            if (!this.objectConstructorIsFactory && !(borrowedObject instanceof this.ObjectConstructor)) {
               throw new Error('Can\'t return object which is not a ' + this.ObjectConstructor.name);
             }
             var index = this.borrowedObjects.indexOf(borrowedObject);
             if (index === -1) {
-              if (this.availableObjects.includes(borrowedObject)) {
+              if (this.availableObjects.indexOf(borrowedObject) > -1) {
                 throw new Error(this.ObjectConstructor.name + ' already returned !');
               }
               throw new Error('Object given in Pool#returns() is not referenced in this Pool instance.');
@@ -105,6 +140,7 @@ System.register('Pool', ['babel-runtime/helpers/classCallCheck', 'babel-runtime/
               }
             }
             this.availableObjects.push(borrowedObject);
+            if (this._onObjectReturned) this._onObjectReturned();
           }
         }, {
           key: 'hasAvailables',
@@ -114,7 +150,7 @@ System.register('Pool', ['babel-runtime/helpers/classCallCheck', 'babel-runtime/
         }, {
           key: 'getCountAvailables',
           value: function getCountAvailables() {
-            return this.availableObjects.length;
+            return (this.size === -1 ? Number.MAX_SAFE_INTEGER : this.size) - this.getCountBorrowed();
           }
         }, {
           key: 'getCountBorrowed',
@@ -125,6 +161,15 @@ System.register('Pool', ['babel-runtime/helpers/classCallCheck', 'babel-runtime/
           key: 'toString',
           value: function toString() {
             return 'Pool<' + this.ObjectConstructor.name + '>(borrowed: ' + this.getCountBorrowed() + ', available: ' + this.getCountAvailables() + ')';
+          }
+        }, {
+          key: '_onObjectReturned',
+          value: function _onObjectReturned() {
+            console.log('_onObjectReturned');
+            if (this.awaitCallbacks.length && this.hasAvailables()) {
+              var resolver = this.awaitCallbacks.shift();
+              resolver(this.borrows());
+            }
           }
         }]);
 

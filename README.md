@@ -2,6 +2,8 @@
 
 A simple pool system (available in amd, commonjs, systemjs and globals)
 
+To view an example of use: [BufferedListView.js](https://github.com/Kelgors/BufferedListView.js). This example use a pool to limit instaciation of ItemView in the list.
+
 ```bash
 npm install pool.js
 bower install pool.js
@@ -10,12 +12,16 @@ bower install pool.js
 ### How-To
 
 ```javascript
+// Imagine you've got this "class"
 function View(blah) {
   this.el = document.createElement('div');
 }
 View.prototype.clear = function clear() { this.el.innerHTML = ''; };
 View.prototype.destroy = function destroy() { this.el = null; };
 View.prototype.render = function render() { this.el.innerHTML = '<div>Hello you</div>'; };
+```
+
+```javascript
 // Create a pool of View
 var pool = new Pool(View, -1, {
   clearMethodName: 'clear',
@@ -37,7 +43,7 @@ pool.destroy();
 
 You can also have a factory instead of a Constructor
 
-```
+```javascript
 function createView() {
   return new View();
 }

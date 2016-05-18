@@ -33,6 +33,7 @@ var Pool = function () {
     set_constant(this, 'objectConstructorIsFactory', isFactory);
     set_constant(this, 'borrowedObjects', []);
     set_constant(this, 'availableObjects', []);
+    set_constant(this, 'awaitCallbacks', []);
   }
 
   _createClass(Pool, [{
@@ -40,11 +41,14 @@ var Pool = function () {
     value: function destroy() {
       this._destroyChildren(this.borrowedObjects);
       this._destroyChildren(this.availableObjects);
+      if (this.awaitCallbacks.length) {
+        this.awaitCallbacks.splice(0, this.awaitCallbacks.length);
+      }
     }
   }, {
     key: '_destroyChildren',
     value: function _destroyChildren(arrayOfObjects) {
-      var methodName = this.objectDestroyMethodName || this.clearMethodName;
+      var methodName = this.objectDestroyMethodName || this.objectClearMethodName;
       if (!methodName) {
         // just empty it
         arrayOfObjects.splice(0, arrayOfObjects.length);
@@ -61,6 +65,16 @@ var Pool = function () {
       }
     }
   }, {
+    key: 'await',
+    value: function await() {
+      var _this = this;
+
+      if (this.hasAvailables()) return Promise.resolve(this.borrows());
+      return new Promise(function (resolve, reject) {
+        _this.awaitCallbacks.push(resolve);
+      });
+    }
+  }, {
     key: 'borrows',
     value: function borrows() {
       var object = null;
@@ -72,17 +86,18 @@ var Pool = function () {
         }
         this.borrowedObjects.push(object);
       }
+      if (this._onObjectBorrowed) this._onObjectBorrowed();
       return object;
     }
   }, {
     key: 'returns',
     value: function returns(borrowedObject) {
-      if (!(borrowedObject instanceof this.ObjectConstructor)) {
+      if (!this.objectConstructorIsFactory && !(borrowedObject instanceof this.ObjectConstructor)) {
         throw new Error('Can\'t return object which is not a ' + this.ObjectConstructor.name);
       }
       var index = this.borrowedObjects.indexOf(borrowedObject);
       if (index === -1) {
-        if (this.availableObjects.includes(borrowedObject)) {
+        if (this.availableObjects.indexOf(borrowedObject) > -1) {
           throw new Error(this.ObjectConstructor.name + ' already returned !');
         }
         throw new Error('Object given in Pool#returns() is not referenced in this Pool instance.');
@@ -97,6 +112,7 @@ var Pool = function () {
         }
       }
       this.availableObjects.push(borrowedObject);
+      if (this._onObjectReturned) this._onObjectReturned();
     }
   }, {
     key: 'hasAvailables',
@@ -106,7 +122,7 @@ var Pool = function () {
   }, {
     key: 'getCountAvailables',
     value: function getCountAvailables() {
-      return this.availableObjects.length;
+      return (this.size === -1 ? Number.MAX_SAFE_INTEGER : this.size) - this.getCountBorrowed();
     }
   }, {
     key: 'getCountBorrowed',
@@ -117,6 +133,15 @@ var Pool = function () {
     key: 'toString',
     value: function toString() {
       return 'Pool<' + this.ObjectConstructor.name + '>(borrowed: ' + this.getCountBorrowed() + ', available: ' + this.getCountAvailables() + ')';
+    }
+  }, {
+    key: '_onObjectReturned',
+    value: function _onObjectReturned() {
+      console.log('_onObjectReturned');
+      if (this.awaitCallbacks.length && this.hasAvailables()) {
+        var resolver = this.awaitCallbacks.shift();
+        resolver(this.borrows());
+      }
     }
   }]);
 
