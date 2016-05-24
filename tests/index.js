@@ -43,7 +43,7 @@ describe('Pool', function () {
       pool.getCountBorrowed().should.be.equal(2);
       pool.getCountAvailables().should.be.equal(0);
     });
-    it('should not return a third Point', function () {
+    it('should not returns a third Point', function () {
       var thirdBorrowedObject = pool.borrows();
       require('chai').expect(thirdBorrowedObject).to.be.equal(null);
       pool.hasAvailables().should.be.equal(false);
